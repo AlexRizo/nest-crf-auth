@@ -22,14 +22,15 @@ export class UsersService {
         },
       });
 
-      return { user };
+      return user;
     } catch (error) {
       this.handleDBExceptions(error);
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll() {
+    const users = await this.prisma.user.findMany();
+    return users;
   }
 
   async findOne(term: string) {
@@ -44,6 +45,17 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string | null) {
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { refreshToken },
+      });
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
   private handleDBExceptions(error: any) {
