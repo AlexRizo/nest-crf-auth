@@ -1,26 +1,168 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/users.service';
+import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
+import { generateCSRFToken } from './utils/csrf.util';
+import { LoginDto } from './dto/login.dto';
+
+const cookieOptions = (minutes: number) => {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: minutes * 60 * 1000,
+    sameSite: 'strict' as const,
+    path: '/',
+  };
+};
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  async validateUser(email: string, password: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) return null;
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return null;
+
+    return user;
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  private async signTokens(userId: string, email: string) {
+    const accessPayload = { sub: userId, email };
+    const refreshPayload = { sub: userId, email };
+
+    const accessToken = await this.jwtService.signAsync(accessPayload, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRES') || '15m',
+    });
+
+    const refreshToken = await this.jwtService.signAsync(refreshPayload, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES') || '1d',
+    });
+
+    return { accessToken, refreshToken };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  async login(res: Response, { email, password }: LoginDto) {
+    const user = await this.validateUser(email, password);
+    if (!user) throw new UnauthorizedException('Credenciales incorrectas');
+
+    const { accessToken, refreshToken } = await this.signTokens(
+      user.id,
+      user.email,
+    );
+
+    const refreshHash = await bcrypt.hash(refreshToken, 12);
+    await this.usersService.updateRefreshToken(user.id, refreshHash);
+
+    res.cookie('access_token', accessToken, cookieOptions(15));
+
+    const refreshExpMinutes = this.parseDurationMinutes(
+      this.configService.get('JWT_REFRESH_EXPIRES') || '1d',
+    );
+    res.cookie('refresh_token', refreshToken, cookieOptions(refreshExpMinutes));
+
+    res.cookie('XSRF-TOKEN', generateCSRFToken(), {
+      httpOnly: false,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      sameSite: 'strict' as const,
+      path: '/',
+      maxAge: 15 * 60 * 1000, // 15 minutos;
+    });
+
+    return {
+      ok: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    };
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
+  async refresh(
+    res: Response,
+    userId: string,
+    email: string,
+    presentedRefreshToken: string,
+  ) {
+    const user = await this.usersService.findOne(userId);
+    if (!user.refreshToken) throw new UnauthorizedException('Sin autorización');
+
+    const isMatch = await bcrypt.compare(
+      presentedRefreshToken,
+      user.refreshToken,
+    );
+
+    if (!isMatch) throw new UnauthorizedException('Sin autorización');
+
+    const { accessToken, refreshToken } = await this.signTokens(
+      user.id,
+      user.email,
+    );
+    const newRefreshHash = await bcrypt.hash(refreshToken, 12);
+
+    await this.usersService.updateRefreshToken(user.id, newRefreshHash);
+
+    res.cookie('access_token', accessToken, cookieOptions(15));
+    const refreshExpMinutes = this.parseDurationMinutes(
+      this.configService.get('JWT_REFRESH_EXPIRES') || '1d',
+    );
+    res.cookie('refresh_token', refreshToken, cookieOptions(refreshExpMinutes));
+    res.cookie('XSRF-TOKEN', generateCSRFToken(), {
+      httpOnly: false,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      sameSite: 'strict' as const,
+      path: '/',
+      maxAge: 15 * 60 * 1000, // 15 minutos;
+    });
+
+    return {
+      ok: true,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  async logout(res: Response, userId: string) {
+    await this.usersService.updateRefreshToken(userId, null);
+    res.clearCookie('access_token', { path: '/' });
+    res.clearCookie('refresh_token', { path: '/' });
+    res.clearCookie('XSRF-TOKEN', { path: '/' });
+
+    return {
+      ok: true,
+    };
+  }
+
+  // Util: convertir string a minutos
+  private parseDurationMinutes(value: string): number {
+    const m = value.match(/^(\d+)([smhd])$/);
+    if (!m) return 60 * 24 * 1; // fallback 1d
+    const n = Number(m[1]);
+    const unit = m[2];
+    switch (unit) {
+      case 's':
+        return Math.ceil(n / 60);
+      case 'm':
+        return n;
+      case 'h':
+        return n * 60;
+      case 'd':
+        return n * 60 * 24;
+      default:
+        return 60 * 24 * 1; // fallback 1d
+    }
   }
 }

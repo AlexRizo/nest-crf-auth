@@ -1,0 +1,18 @@
+import {
+  createParamDecorator,
+  ExecutionContext,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { User } from '@prisma/client';
+
+type Data = 'id' | 'email' | 'username' | undefined;
+
+export const GetUser = createParamDecorator(
+  (data: Data, ctx: ExecutionContext) => {
+    const req: Request = ctx.switchToHttp().getRequest();
+    const user = req.user;
+    if (!user) throw new InternalServerErrorException('Usuario no encontrado');
+    return !data ? user : (user[data] as User);
+  },
+);

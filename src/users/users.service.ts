@@ -33,6 +33,11 @@ export class UsersService {
     return users;
   }
 
+  async findOneByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    return user;
+  }
+
   async findOne(term: string) {
     const where = isUUID(term) ? { id: term } : { username: term };
 
