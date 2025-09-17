@@ -54,7 +54,10 @@ export class AuthService {
 
   async login(res: Response, { email, password }: LoginDto) {
     const user = await this.validateUser(email, password);
-    if (!user) throw new UnauthorizedException('Credenciales incorrectas');
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario y/o contraseña incorrectos');
+    }
 
     const { accessToken, refreshToken } = await this.signTokens(
       user.id,
@@ -80,11 +83,12 @@ export class AuthService {
     });
 
     return {
-      ok: true,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
+        username: user.username,
+        roles: user.roles,
       },
     };
   }
@@ -143,6 +147,7 @@ export class AuthService {
 
     return {
       ok: true,
+      message: 'Sesión finalizada',
     };
   }
 

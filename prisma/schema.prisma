@@ -13,12 +13,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Roles {
+  admin
+  manager
+  applicant
+  student
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
   username     String   @unique
   email        String   @unique
   password     String
+  roles        Roles[] @default([applicant])
   refreshToken String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
