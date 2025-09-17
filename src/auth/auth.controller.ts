@@ -18,11 +18,8 @@ export class AuthController {
   }
 
   @Auth()
-  @Get('check')
+  @Get('me')
   checkAuth(@GetUser() user: User) {
-    return {
-      ok: true,
-      user,
-    };
+    return this.authService.checkAuth(user.id);
   }
 }

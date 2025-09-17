@@ -35,9 +35,14 @@ export class AuthService {
     return user;
   }
 
-  private async signTokens(userId: string, email: string) {
-    const accessPayload = { sub: userId, email };
-    const refreshPayload = { sub: userId, email };
+  private async signTokens(
+    userId: string,
+    email: string,
+    username: string,
+    roles: string[],
+  ) {
+    const accessPayload = { sub: userId, email, username, roles };
+    const refreshPayload = { sub: userId, email, username, roles };
 
     const accessToken = await this.jwtService.signAsync(accessPayload, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
@@ -62,6 +67,8 @@ export class AuthService {
     const { accessToken, refreshToken } = await this.signTokens(
       user.id,
       user.email,
+      user.username,
+      user.roles,
     );
 
     const refreshHash = await bcrypt.hash(refreshToken, 12);
@@ -112,6 +119,8 @@ export class AuthService {
     const { accessToken, refreshToken } = await this.signTokens(
       user.id,
       user.email,
+      user.username,
+      user.roles,
     );
     const newRefreshHash = await bcrypt.hash(refreshToken, 12);
 
@@ -135,6 +144,9 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
+        username: user.username,
+        roles: user.roles,
       },
     };
   }
@@ -148,6 +160,20 @@ export class AuthService {
     return {
       ok: true,
       message: 'Sesión finalizada',
+    };
+  }
+
+  async checkAuth(userId: string) {
+    const user = await this.usersService.findOne(userId);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        username: user.username,
+        roles: user.roles,
+      },
     };
   }
 
