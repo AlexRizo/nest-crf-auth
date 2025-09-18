@@ -41,8 +41,8 @@ export class AuthService {
     username: string,
     roles: string[],
   ) {
-    const accessPayload = { sub: userId, email, username, roles };
-    const refreshPayload = { sub: userId, email, username, roles };
+    const accessPayload = { id: userId, email, username, roles };
+    const refreshPayload = { id: userId, email, username, roles };
 
     const accessToken = await this.jwtService.signAsync(accessPayload, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
@@ -90,20 +90,18 @@ export class AuthService {
     });
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        username: user.username,
-        roles: user.roles,
-      },
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      username: user.username,
+      roles: user.roles,
     };
   }
 
   async refresh(
     res: Response,
     userId: string,
-    email: string,
+    // email: string,
     presentedRefreshToken: string,
   ) {
     const user = await this.usersService.findOne(userId);
@@ -167,17 +165,15 @@ export class AuthService {
     const user = await this.usersService.findOne(userId);
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        username: user.username,
-        roles: user.roles,
-      },
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      username: user.username,
+      roles: user.roles,
     };
   }
 
-  // Util: convertir string a minutos
+  // ? convertir string a minutos
   private parseDurationMinutes(value: string): number {
     const m = value.match(/^(\d+)([smhd])$/);
     if (!m) return 60 * 24 * 1; // fallback 1d

@@ -7,8 +7,9 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { META_ROLES } from '../decorators/role.decorator';
-import { Roles, User } from '@prisma/client';
+import { Roles } from '@prisma/client';
 import { Request } from 'express';
+import { UserJwtPayload } from '../interfaces/jwt.interface';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -25,7 +26,7 @@ export class UserRoleGuard implements CanActivate {
     if (!validRoles || validRoles.length === 0) return true;
 
     const req: Request = context.switchToHttp().getRequest();
-    const user = req.user as User;
+    const user = req.user as UserJwtPayload;
 
     for (const role of validRoles) {
       if (user.roles.includes(role)) return true;

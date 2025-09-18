@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { User } from '@prisma/client';
+import { UserJwtPayload } from '../interfaces/jwt.interface';
 
 type Data = 'id' | 'email' | 'username' | undefined;
 
@@ -13,6 +13,6 @@ export const GetUser = createParamDecorator(
     const req: Request = ctx.switchToHttp().getRequest();
     const user = req.user;
     if (!user) throw new InternalServerErrorException('Usuario no encontrado');
-    return !data ? user : (user[data] as User);
+    return !data ? user : (user[data] as UserJwtPayload);
   },
 );

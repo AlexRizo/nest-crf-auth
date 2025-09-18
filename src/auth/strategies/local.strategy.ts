@@ -18,6 +18,11 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
       throw new UnauthorizedException('Usuario y/o contraseña incorrectos');
     }
 
-    return user;
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      roles: user.roles,
+    };
   }
 }
