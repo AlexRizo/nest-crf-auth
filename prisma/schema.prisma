@@ -22,12 +22,12 @@ enum Roles {
 
 model User {
   id           String   @id @default(uuid())
-  first_name   String   @default("")
-  last_name    String   @default("")
+  first_name   String
+  last_name    String
   username     String   @unique
   email        String   @unique
   password     String
-  roles        Roles[]  @default([applicant])
+  role         Roles    @default(applicant)
   refreshToken String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

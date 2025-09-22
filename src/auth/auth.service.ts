@@ -39,10 +39,10 @@ export class AuthService {
     userId: string,
     email: string,
     username: string,
-    roles: string[],
+    role: string,
   ) {
-    const accessPayload = { id: userId, email, username, roles };
-    const refreshPayload = { id: userId, email, username, roles };
+    const accessPayload = { id: userId, email, username, role };
+    const refreshPayload = { id: userId, email, username, role };
 
     const accessToken = await this.jwtService.signAsync(accessPayload, {
       secret: this.configService.get('JWT_ACCESS_SECRET'),
@@ -68,7 +68,7 @@ export class AuthService {
       user.id,
       user.email,
       user.username,
-      user.roles,
+      user.role,
     );
 
     const refreshHash = await bcrypt.hash(refreshToken, 12);
@@ -95,7 +95,7 @@ export class AuthService {
       first_name: user.first_name,
       last_name: user.last_name,
       username: user.username,
-      roles: user.roles,
+      role: user.role,
     };
   }
 
@@ -119,7 +119,7 @@ export class AuthService {
       user.id,
       user.email,
       user.username,
-      user.roles,
+      user.role,
     );
     const newRefreshHash = await bcrypt.hash(refreshToken, 12);
 
@@ -146,7 +146,7 @@ export class AuthService {
         first_name: user.first_name,
         last_name: user.last_name,
         username: user.username,
-        roles: user.roles,
+        role: user.role,
       },
     };
   }
@@ -172,7 +172,7 @@ export class AuthService {
       first_name: user.first_name,
       last_name: user.last_name,
       username: user.username,
-      roles: user.roles,
+      role: user.role,
     };
   }
 

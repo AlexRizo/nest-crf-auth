@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateStaffDto } from './dto/create-staff.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { isUUID } from 'class-validator';
 import * as bcrypt from 'bcrypt';
@@ -13,7 +13,7 @@ import { Prisma } from '@prisma/client';
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
-  async create({ password, ...rest }: CreateUserDto) {
+  async create({ password, ...rest }: CreateStaffDto) {
     try {
       const user = await this.prisma.user.create({
         data: {
