@@ -31,7 +31,7 @@ export class UsersService {
     }
   }
 
-  async update(id: string, updateStaffDto: UpdateStaffDto) {
+  async updateStaff(id: string, updateStaffDto: UpdateStaffDto) {
     await this.findOne(id);
 
     try {
@@ -50,7 +50,7 @@ export class UsersService {
       );
 
       const user = await this.prisma.user.update({
-        where: { id },
+        where: { id, isActive: true },
         data: dataToUpdate,
         omit: { password: true, refreshToken: true },
       });
@@ -59,6 +59,17 @@ export class UsersService {
     } catch (error) {
       this.handleDBExceptions(error);
     }
+  }
+
+  async deleteStaff(id: string) {
+    await this.findOne(id);
+    const user = await this.prisma.user.update({
+      where: { id },
+      data: { isActive: false },
+      omit: { password: true, refreshToken: true },
+    });
+
+    return user;
   }
 
   async findAll({ staff, students }: FindAllQueryDto) {
@@ -73,14 +84,16 @@ export class UsersService {
     }
 
     const users = await this.prisma.user.findMany({
-      where,
+      where: { ...where, isActive: true },
       omit: { password: true, refreshToken: true },
     });
     return users;
   }
 
   async findOneByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findUnique({
+      where: { email, isActive: true },
+    });
     return user;
   }
 
@@ -88,7 +101,7 @@ export class UsersService {
     const where = isUUID(term) ? { id: term } : { username: term };
 
     const user = await this.prisma.user.findUnique({
-      where,
+      where: { ...where, isActive: true },
       omit: { password: true, refreshToken: true },
     });
 
@@ -102,7 +115,9 @@ export class UsersService {
   }
 
   async findOneForAuth(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({
+      where: { id, isActive: true },
+    });
 
     if (!user) {
       throw new NotFoundException(
@@ -116,7 +131,7 @@ export class UsersService {
   async updateRefreshToken(userId: string, refreshToken: string | null) {
     try {
       await this.prisma.user.update({
-        where: { id: userId },
+        where: { id: userId, isActive: true },
         data: { refreshToken },
         omit: { password: true, refreshToken: true },
       });
@@ -127,7 +142,7 @@ export class UsersService {
 
   async updateLastLogin(userId: string) {
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id: userId, isActive: true },
       data: { last_login: new Date() },
     });
   }

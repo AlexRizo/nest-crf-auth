@@ -27,11 +27,17 @@ export class UsersController {
 
   @Auth(Roles.admin)
   @Patch('staff/:id')
-  update(
+  updateStaff(
     @Body() updateStaffDto: UpdateStaffDto,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.usersService.update(id, updateStaffDto);
+    return this.usersService.updateStaff(id, updateStaffDto);
+  }
+
+  @Auth(Roles.admin)
+  @Patch('staff/delete/:id')
+  deleteStaff(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.deleteStaff(id);
   }
 
   @Post('student')
