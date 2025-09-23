@@ -1,4 +1,3 @@
-import { Roles } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -7,6 +6,12 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
+
+enum StaffRoles {
+  admin = 'admin',
+  manager = 'manager',
+  applicant = 'applicant',
+}
 
 export class CreateStaffDto {
   @IsString()
@@ -40,7 +45,7 @@ export class CreateStaffDto {
   @IsNotEmpty()
   password: string;
 
-  @IsEnum(Roles)
+  @IsEnum(StaffRoles)
   @IsNotEmpty()
-  roles: string;
+  role: StaffRoles;
 }

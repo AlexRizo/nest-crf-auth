@@ -9,6 +9,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { isUUID } from 'class-validator';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
+import { FindAllQueryDto } from './dto/find-all-query.dto';
+import { UpdateStaffDto } from './dto/update-staff.dto';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +22,7 @@ export class UsersService {
           ...rest,
           password: bcrypt.hashSync(password, 10),
         },
+        omit: { password: true, refreshToken: true },
       });
 
       return user;
@@ -28,8 +31,51 @@ export class UsersService {
     }
   }
 
-  async findAll() {
-    const users = await this.prisma.user.findMany();
+  async update(id: string, updateStaffDto: UpdateStaffDto) {
+    await this.findOne(id);
+
+    try {
+      const dataToUpdate = { ...updateStaffDto };
+
+      if (updateStaffDto.password) {
+        dataToUpdate.password = bcrypt.hashSync(updateStaffDto.password, 10);
+      }
+
+      Object.keys(dataToUpdate).forEach(
+        key =>
+          (dataToUpdate[key] === undefined ||
+            dataToUpdate[key] === null ||
+            dataToUpdate[key] === '') &&
+          delete dataToUpdate[key],
+      );
+
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: dataToUpdate,
+        omit: { password: true, refreshToken: true },
+      });
+
+      return user;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
+  async findAll({ staff, students }: FindAllQueryDto) {
+    const where: Prisma.UserWhereInput = {};
+
+    if (staff && !students) {
+      where.role = { in: ['admin', 'manager', 'applicant'] };
+    } else if (students && !staff) {
+      where.role = { in: ['student'] };
+    } else {
+      where.role = { in: ['admin', 'manager', 'applicant', 'student'] };
+    }
+
+    const users = await this.prisma.user.findMany({
+      where,
+      omit: { password: true, refreshToken: true },
+    });
     return users;
   }
 
@@ -41,11 +87,26 @@ export class UsersService {
   async findOne(term: string) {
     const where = isUUID(term) ? { id: term } : { username: term };
 
-    const user = await this.prisma.user.findUnique({ where });
+    const user = await this.prisma.user.findUnique({
+      where,
+      omit: { password: true, refreshToken: true },
+    });
 
     if (!user) {
       throw new NotFoundException(
         `Usuario con el término '${term}' no encontrado`,
+      );
+    }
+
+    return user;
+  }
+
+  async findOneForAuth(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(
+        `Usuario con el término '${id}' no encontrado`,
       );
     }
 
@@ -57,10 +118,18 @@ export class UsersService {
       await this.prisma.user.update({
         where: { id: userId },
         data: { refreshToken },
+        omit: { password: true, refreshToken: true },
       });
     } catch (error) {
       this.handleDBExceptions(error);
     }
+  }
+
+  async updateLastLogin(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { last_login: new Date() },
+    });
   }
 
   private handleDBExceptions(error: any) {

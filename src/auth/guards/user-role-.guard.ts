@@ -29,7 +29,7 @@ export class UserRoleGuard implements CanActivate {
     const user = req.user as UserJwtPayload;
 
     for (const role of validRoles) {
-      if (user.role.includes(role)) return true;
+      if (role.includes(user.role)) return true;
     }
 
     throw new ForbiddenException('Usuario no autorizado');

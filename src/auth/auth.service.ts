@@ -89,6 +89,8 @@ export class AuthService {
       maxAge: 15 * 60 * 1000, // 15 minutos;
     });
 
+    await this.usersService.updateLastLogin(user.id);
+
     return {
       id: user.id,
       email: user.email,
@@ -105,7 +107,7 @@ export class AuthService {
     // email: string,
     presentedRefreshToken: string,
   ) {
-    const user = await this.usersService.findOne(userId);
+    const user = await this.usersService.findOneForAuth(userId);
     if (!user.refreshToken) throw new UnauthorizedException('Sin autorización');
 
     const isMatch = await bcrypt.compare(
