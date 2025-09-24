@@ -87,6 +87,7 @@ export class UsersService {
       where: { ...where, isActive: true },
       omit: { password: true, refreshToken: true },
     });
+
     return users;
   }
 
@@ -94,6 +95,7 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { email, isActive: true },
     });
+
     return user;
   }
 
