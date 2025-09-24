@@ -21,16 +21,48 @@ enum Roles {
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   first_name   String
   last_name    String
-  username     String   @unique
-  email        String   @unique
+  username     String    @unique
+  email        String    @unique
   password     String
-  role         Roles    @default(applicant)
+  role         Roles     @default(applicant)
   refreshToken String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  isActive     Boolean  @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  isActive     Boolean   @default(true)
   last_login   DateTime?
+}
+
+model Exam {
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  code         String        @unique
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+  topics       Topic[]
+}
+
+model Application {
+  id         String   @id @default(uuid())
+  examId     String
+  exam       Exam     @relation(fields: [examId], references: [id], onDelete: Restrict)
+  scheduleAt DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Topic {
+  id        String   @id @default(uuid())
+  title     String
+  order     Int      @default(0)
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
