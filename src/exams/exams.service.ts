@@ -74,6 +74,15 @@ export class ExamsService {
   async findAll() {
     return this.prismaService.exam.findMany({
       where: { isActive: true },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        code: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: { select: { topics: true } },
+      },
     });
   }
 
