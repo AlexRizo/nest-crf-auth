@@ -32,6 +32,10 @@ export class TopicsService {
   async findAllByExamId(examId: string) {
     const topics = await this.prismaService.topic.findMany({
       where: { examId, isActive: true },
+      include: {
+        Question: true,
+        QuestionGroup: true,
+      },
     });
 
     if (!topics || topics.length === 0) {

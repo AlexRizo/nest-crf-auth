@@ -1,30 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import { Auth } from 'src/auth/decorators/auth.decorator';
+import { Roles } from '@prisma/client';
 
 @Controller('questions')
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
+  @Auth(Roles.admin)
   @Post()
   create(@Body() createQuestionDto: CreateQuestionDto) {
     return this.questionsService.create(createQuestionDto);
   }
 
-  @Get()
-  findAll() {
-    return this.questionsService.findAll();
+  @Auth(Roles.admin, Roles.manager, Roles.applicant)
+  @Get(':term')
+  findOne(@Param('term') term: string) {
+    return this.questionsService.findOne(term);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.questionsService.findOne(+id);
+  @Auth(Roles.admin, Roles.manager, Roles.applicant)
+  @Get('topic/:topicTerm')
+  findAllQuestionsByTopicTerm(@Param('topicTerm') topicTerm: string) {
+    return this.questionsService.findAllQuestionsByTopicTerm(topicTerm);
   }
 
+  @Auth(Roles.admin)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDto) {
-    return this.questionsService.update(+id, updateQuestionDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateQuestionDto: UpdateQuestionDto,
+  ) {
+    return this.questionsService.update(id, updateQuestionDto);
   }
 
   @Delete(':id')

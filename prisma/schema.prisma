@@ -73,7 +73,7 @@ model Topic {
 enum QuestionType {
   singleChoice
   multipleChoice
-  gragNDrop
+  dragNDrop
   match
 }
 
@@ -81,7 +81,7 @@ model Question {
   id          String         @id @default(uuid())
   text        String
   type        QuestionType
-  
+  code        String         @unique
   resourceUrl String?
   options     Option[]
   isActive    Boolean        @default(true)
