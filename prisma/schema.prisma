@@ -57,13 +57,61 @@ model Application {
 }
 
 model Topic {
-  id        String   @id @default(uuid())
-  title     String
-  order     Int      @default(0)
-  code      String   @unique
-  examId    String
-  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String          @id @default(uuid())
+  title         String
+  order         Int             @default(0)
+  code          String          @unique
+  examId        String
+  exam          Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  Question      Question[]
+  QuestionGroup QuestionGroup[]
+}
+
+enum QuestionType {
+  singleChoice
+  multipleChoice
+  gragNDrop
+  match
+}
+
+model Question {
+  id          String         @id @default(uuid())
+  text        String
+  type        QuestionType
+  
+  resourceUrl String?
+  options     Option[]
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  topicId     String?
+  topic       Topic?         @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  groupId     String?
+  group       QuestionGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+}
+
+model QuestionGroup {
+  id          String     @id @default(uuid())
+  name        String
+  topicId     String?
+  topic       Topic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  content     String?
+  resourceUrl String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  questions   Question[]
+}
+
+model Option {
+  id         String   @id @default(uuid())
+  text       String?
+  imageUrl   String?
+  isCorrect  Boolean
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

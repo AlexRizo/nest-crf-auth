@@ -6,6 +6,9 @@ import { AuthModule } from './auth/auth.module';
 import { ExamsModule } from './exams/exams.module';
 import { TopicsModule } from './topics/topics.module';
 import { ApplicationsModule } from './applications/applications.module';
+import { QuestionsModule } from './questions/questions.module';
+import { OptionsModule } from './options/options.module';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { ApplicationsModule } from './applications/applications.module';
     ExamsModule,
     TopicsModule,
     ApplicationsModule,
+    QuestionsModule,
+    OptionsModule,
+    GroupsModule,
   ],
   controllers: [],
   providers: [],
