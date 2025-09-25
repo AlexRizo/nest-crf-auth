@@ -8,6 +8,8 @@ import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { nanoid } from 'nanoid';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class TopicsService {
@@ -16,16 +18,15 @@ export class TopicsService {
   async create(createTopicDto: CreateTopicDto) {
     try {
       const topic = await this.prismaService.topic.create({
-        data: createTopicDto,
+        data: {
+          ...createTopicDto,
+          code: `tema-${nanoid(5)}`,
+        },
       });
       return topic;
     } catch (error) {
       this.handleDBExceptions(error);
     }
-  }
-
-  findAll() {
-    return `This action returns all topics`;
   }
 
   async findAllByExamId(examId: string) {
@@ -40,9 +41,11 @@ export class TopicsService {
     return topics;
   }
 
-  async findOne(id: string) {
+  async findOne(term: string) {
+    const where = isUUID(term) ? { id: term } : { code: term };
+
     const topic = await this.prismaService.topic.findUnique({
-      where: { id, isActive: true },
+      where: { ...where, isActive: true },
     });
 
     if (!topic) {
@@ -52,12 +55,49 @@ export class TopicsService {
     return topic;
   }
 
-  update(id: number, updateTopicDto: UpdateTopicDto) {
-    return `This action updates a #${id} topic`;
+  async findOneWithExamCode(term: string, examCode: string) {
+    const where = isUUID(term) ? { id: term } : { code: term };
+
+    const topic = await this.prismaService.topic.findUnique({
+      where: { ...where, isActive: true, exam: { code: examCode } },
+      include: { exam: true },
+    });
+
+    if (!topic) {
+      throw new NotFoundException('El tema no existe');
+    }
+
+    return topic;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} topic`;
+  async update(id: string, updateTopicDto: UpdateTopicDto) {
+    await this.findOne(id);
+
+    try {
+      const topic = await this.prismaService.topic.update({
+        where: { id, isActive: true },
+        data: updateTopicDto,
+      });
+
+      return topic;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
+
+  async remove(id: string) {
+    await this.findOne(id);
+
+    try {
+      const topic = await this.prismaService.topic.update({
+        where: { id, isActive: true },
+        data: { isActive: false },
+      });
+
+      return topic;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
   private handleDBExceptions(error: any) {

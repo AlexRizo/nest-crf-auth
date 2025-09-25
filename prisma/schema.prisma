@@ -60,6 +60,7 @@ model Topic {
   id        String   @id @default(uuid())
   title     String
   order     Int      @default(0)
+  code      String   @unique
   examId    String
   exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
   isActive  Boolean  @default(true)

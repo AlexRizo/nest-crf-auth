@@ -5,7 +5,6 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { TopicsService } from './topics.service';
@@ -24,23 +23,33 @@ export class TopicsController {
     return this.topicsService.create(createTopicDto);
   }
 
-  @Get()
-  findAll() {
-    return this.topicsService.findAll();
+  @Auth(Roles.admin, Roles.manager, Roles.applicant)
+  @Get(':term')
+  findOne(@Param('term') term: string) {
+    return this.topicsService.findOne(term);
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.topicsService.findOne(id);
+  @Auth(Roles.admin, Roles.manager, Roles.applicant)
+  @Get(':term/exam/:examCode')
+  findOneWithExamCode(
+    @Param('term') term: string,
+    @Param('examCode') examCode: string,
+  ) {
+    return this.topicsService.findOneWithExamCode(term, examCode);
   }
 
+  @Auth(Roles.admin)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTopicDto: UpdateTopicDto) {
-    return this.topicsService.update(+id, updateTopicDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateTopicDto: UpdateTopicDto,
+  ) {
+    return this.topicsService.update(id, updateTopicDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.topicsService.remove(+id);
+  @Auth(Roles.admin)
+  @Patch(':id/delete')
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.topicsService.remove(id);
   }
 }
