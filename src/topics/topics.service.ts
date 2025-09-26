@@ -33,8 +33,8 @@ export class TopicsService {
     const topics = await this.prismaService.topic.findMany({
       where: { examId, isActive: true },
       include: {
-        Question: true,
-        QuestionGroup: true,
+        questions: true,
+        groups: true,
       },
     });
 

@@ -62,6 +62,9 @@ export class ExamsService {
 
     const exam = await this.prismaService.exam.findUnique({
       where: { ...where, isActive: true },
+      include: {
+        topics: true,
+      },
     });
 
     if (!exam) {
@@ -82,6 +85,7 @@ export class ExamsService {
         createdAt: true,
         updatedAt: true,
         _count: { select: { topics: true } },
+        topics: true,
       },
     });
   }

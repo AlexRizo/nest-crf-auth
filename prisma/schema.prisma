@@ -45,6 +45,7 @@ model Exam {
   updatedAt    DateTime      @updatedAt
   applications Application[]
   topics       Topic[]
+  groups       Group[]
 }
 
 model Application {
@@ -57,17 +58,17 @@ model Application {
 }
 
 model Topic {
-  id            String          @id @default(uuid())
-  title         String
-  order         Int             @default(0)
-  code          String          @unique
-  examId        String
-  exam          Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
-  isActive      Boolean         @default(true)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  Question      Question[]
-  QuestionGroup QuestionGroup[]
+  id        String     @id @default(uuid())
+  title     String
+  order     Int        @default(0)
+  code      String     @unique
+  examId    String
+  exam      Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  questions Question[]
+  groups    Group[]
 }
 
 enum QuestionType {
@@ -78,26 +79,29 @@ enum QuestionType {
 }
 
 model Question {
-  id          String         @id @default(uuid())
+  id          String       @id @default(uuid())
   text        String
   type        QuestionType
-  code        String         @unique
+  code        String       @unique
   resourceUrl String?
   options     Option[]
-  isActive    Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   topicId     String?
-  topic       Topic?         @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  topic       Topic?       @relation(fields: [topicId], references: [id], onDelete: SetNull)
   groupId     String?
-  group       QuestionGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  group       Group?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
 }
 
-model QuestionGroup {
+model Group {
   id          String     @id @default(uuid())
   name        String
   topicId     String?
+  code        String     @unique
   topic       Topic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  examId      String?
+  exam        Exam?      @relation(fields: [examId], references: [id], onDelete: SetNull)
   content     String?
   resourceUrl String?
   createdAt   DateTime   @default(now())
@@ -105,8 +109,17 @@ model QuestionGroup {
   questions   Question[]
 }
 
+enum Letter {
+  a
+  b
+  c
+  d
+  e
+}
+
 model Option {
   id         String   @id @default(uuid())
+  letter     Letter
   text       String?
   imageUrl   String?
   isCorrect  Boolean

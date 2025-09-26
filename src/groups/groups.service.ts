@@ -1,26 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { nanoid } from 'nanoid';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class GroupsService {
-  create(createGroupDto: CreateGroupDto) {
-    return 'This action adds a new group';
+  constructor(private readonly prismaService: PrismaService) {}
+
+  async create(createGroupDto: CreateGroupDto) {
+    try {
+      const group = await this.prismaService.group.create({
+        data: {
+          ...createGroupDto,
+          code: `grupo-${nanoid(5)}`,
+        },
+      });
+      return group;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all groups`;
+  async findOne(term: string) {
+    const where = isUUID(term) ? { id: term } : { code: term };
+
+    const group = await this.prismaService.group.findUnique({
+      where,
+    });
+
+    if (!group) {
+      throw new NotFoundException('La agrupación no existe');
+    }
+
+    return group;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} group`;
-  }
-
-  update(id: number, updateGroupDto: UpdateGroupDto) {
-    return `This action updates a #${id} group`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} group`;
+  async findAll() {
+    const groups = await this.prismaService.group.findMany({
+      include: {
+        topic: true,
+        exam: true,
+        _count: { select: { questions: true } },
+      },
+    });
+    return groups;
   }
 }

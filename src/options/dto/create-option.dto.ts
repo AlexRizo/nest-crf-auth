@@ -1,4 +1,5 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { Letter } from '@prisma/client';
+import { IsBoolean, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateOptionDto {
   @IsString()
@@ -12,4 +13,9 @@ export class CreateOptionDto {
   @IsString()
   @IsNotEmpty()
   questionId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsEnum(Letter)
+  letter: Letter;
 }
