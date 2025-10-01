@@ -32,6 +32,11 @@ export class GroupsService {
 
     const group = await this.prismaService.group.findUnique({
       where,
+      include: {
+        topic: true,
+        exam: true,
+        questions: true,
+      },
     });
 
     if (!group) {

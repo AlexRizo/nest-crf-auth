@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTopicDto } from './dto/create-topic.dto';
@@ -13,7 +14,10 @@ import { isUUID } from 'class-validator';
 
 @Injectable()
 export class TopicsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly logger: Logger,
+  ) {}
 
   async create(createTopicDto: CreateTopicDto) {
     try {
@@ -117,7 +121,10 @@ export class TopicsService {
       throw new ConflictException(`El ${field} ya está en uso`);
     }
 
-    console.log(error);
+    this.logger.error(
+      'Ha ocurrido un error desconocido',
+      JSON.stringify(error),
+    );
     throw new InternalServerErrorException('Ha ocurrido un error desconocido');
   }
 }

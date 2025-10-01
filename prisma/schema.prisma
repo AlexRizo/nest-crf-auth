@@ -97,8 +97,8 @@ model Question {
 model Group {
   id          String     @id @default(uuid())
   name        String
-  topicId     String?
   code        String     @unique
+  topicId     String?
   topic       Topic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
   examId      String?
   exam        Exam?      @relation(fields: [examId], references: [id], onDelete: SetNull)

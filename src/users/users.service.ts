@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateStaffDto } from './dto/create-staff.dto';
@@ -14,7 +15,10 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: Logger,
+  ) {}
   async create({ password, ...rest }: CreateStaffDto) {
     try {
       const user = await this.prisma.user.create({
@@ -162,7 +166,10 @@ export class UsersService {
       throw new ConflictException(`El ${field} ya está en uso`);
     }
 
-    console.log(error);
+    this.logger.error(
+      'Ha ocurrido un error desconocido',
+      JSON.stringify(error),
+    );
     throw new InternalServerErrorException('Ha ocurrido un error desconocido');
   }
 }

@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateExamDto } from './dto/create-exam.dto';
@@ -18,6 +19,7 @@ export class ExamsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly topicsService: TopicsService,
+    private readonly logger: Logger,
   ) {}
 
   async create(createExamDto: CreateExamDto) {
@@ -133,7 +135,10 @@ export class ExamsService {
       throw new ConflictException(`El ${field} ya está en uso`);
     }
 
-    console.log(error);
+    this.logger.error(
+      'Ha ocurrido un error desconocido',
+      JSON.stringify(error),
+    );
     throw new InternalServerErrorException('Ha ocurrido un error desconocido');
   }
 }
