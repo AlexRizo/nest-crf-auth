@@ -14,10 +14,9 @@ import { isUUID } from 'class-validator';
 
 @Injectable()
 export class TopicsService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly logger: Logger,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
+
+  private readonly logger: Logger = new Logger(TopicsService.name);
 
   async create(createTopicDto: CreateTopicDto) {
     try {

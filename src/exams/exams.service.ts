@@ -19,8 +19,9 @@ export class ExamsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly topicsService: TopicsService,
-    private readonly logger: Logger,
   ) {}
+
+  private readonly logger: Logger = new Logger(ExamsService.name);
 
   async create(createExamDto: CreateExamDto) {
     try {

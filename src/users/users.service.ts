@@ -15,10 +15,10 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: Logger,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
+
+  private readonly logger = new Logger(UsersService.name);
+
   async create({ password, ...rest }: CreateStaffDto) {
     try {
       const user = await this.prisma.user.create({
