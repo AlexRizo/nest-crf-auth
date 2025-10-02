@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -9,7 +8,6 @@ import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { nanoid } from 'nanoid';
-import { Prisma } from '@prisma/client';
 import { TopicsService } from 'src/topics/topics.service';
 import { isUUID } from 'class-validator';
 import { CreateExamTopicDto } from './dto/create-exam-topic.dto';
@@ -29,6 +27,10 @@ export class ExamsService {
         data: {
           ...createExamDto,
           code: `examen-${nanoid(5)}`,
+        },
+        include: {
+          topics: true,
+          groups: true,
         },
       });
       return exam;
@@ -123,23 +125,15 @@ export class ExamsService {
     }
   }
 
-  private handleDBExceptions(error: any) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === 'P2002'
-    ) {
-      const target = (error.meta?.target ?? []) as string[];
-
-      const field =
-        target[0] === 'email' ? 'correo electrónico' : 'nombre de usuario';
-
-      throw new ConflictException(`El ${field} ya está en uso`);
+  private handleDBExceptions(error: unknown) {
+    if (error instanceof Error) {
+      this.logger.error('Ha ocurrido un error desconocido', error.stack);
+    } else {
+      this.logger.error(
+        'Ha ocurrido un error desconocido',
+        JSON.stringify(error),
+      );
     }
-
-    this.logger.error(
-      'Ha ocurrido un error desconocido',
-      JSON.stringify(error),
-    );
     throw new InternalServerErrorException('Ha ocurrido un error desconocido');
   }
 }

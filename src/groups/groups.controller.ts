@@ -25,4 +25,10 @@ export class GroupsController {
   findOne(@Param('term') term: string) {
     return this.groupsService.findOne(term);
   }
+
+  @Auth(Roles.admin, Roles.manager, Roles.applicant)
+  @Get('exam/:examId')
+  findGroupsByExamAndTopic(@Param('examId') examId: string) {
+    return this.groupsService.findGroupsByExamAndTopic(examId);
+  }
 }

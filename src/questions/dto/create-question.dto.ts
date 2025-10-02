@@ -1,10 +1,13 @@
+import { OmitType } from '@nestjs/mapped-types';
 import { QuestionType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
+  IsUUID,
   ValidateNested,
 } from 'class-validator';
 import { CreateOptionDto } from 'src/options/dto/create-option.dto';
@@ -20,12 +23,27 @@ export class CreateQuestionDto {
   type: QuestionType;
 
   @IsArray()
-  @IsNotEmpty()
+  @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => CreateOptionDto)
-  options: CreateOptionDto[];
+  @Type(() => CreateQuestionDtoWithOptions)
+  options?: CreateQuestionDtoWithOptions[];
 
   @IsString()
+  @IsUUID()
+  @IsNotEmpty()
+  examId: string;
+
+  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   topicId: string;
+
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  groupId?: string;
 }
+
+class CreateQuestionDtoWithOptions extends OmitType(CreateOptionDto, [
+  'questionId',
+] as const) {}

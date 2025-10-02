@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -8,7 +7,6 @@ import {
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { isUUID } from 'class-validator';
 
@@ -108,22 +106,15 @@ export class TopicsService {
   }
 
   private handleDBExceptions(error: any) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === 'P2002'
-    ) {
-      const target = (error.meta?.target ?? []) as string[];
-
-      const field =
-        target[0] === 'email' ? 'correo electrónico' : 'nombre de usuario';
-
-      throw new ConflictException(`El ${field} ya está en uso`);
+    if (error instanceof Error) {
+      this.logger.error('Ha ocurrido un error desconocido', error.stack);
+    } else {
+      this.logger.error(
+        'Ha ocurrido un error desconocido',
+        JSON.stringify(error),
+      );
     }
 
-    this.logger.error(
-      'Ha ocurrido un error desconocido',
-      JSON.stringify(error),
-    );
     throw new InternalServerErrorException('Ha ocurrido un error desconocido');
   }
 }

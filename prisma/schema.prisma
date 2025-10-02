@@ -46,6 +46,7 @@ model Exam {
   applications Application[]
   topics       Topic[]
   groups       Group[]
+  Question     Question[]
 }
 
 model Application {
@@ -92,6 +93,8 @@ model Question {
   topic       Topic?       @relation(fields: [topicId], references: [id], onDelete: SetNull)
   groupId     String?
   group       Group?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  examId      String
+  exam        Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
 }
 
 model Group {
@@ -114,7 +117,6 @@ enum Letter {
   b
   c
   d
-  e
 }
 
 model Option {

@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateQuestionDto } from './dto/create-question.dto';
@@ -16,6 +17,8 @@ export class QuestionsService {
     private readonly prismaService: PrismaService,
     private readonly topicsService: TopicsService,
   ) {}
+
+  private readonly logger: Logger = new Logger(QuestionsService.name);
 
   async create({ options, ...rest }: CreateQuestionDto) {
     try {
@@ -34,8 +37,7 @@ export class QuestionsService {
 
       return question;
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(error);
+      this.handleDBExceptions(error);
     }
   }
 
@@ -85,5 +87,18 @@ export class QuestionsService {
 
   remove(id: number) {
     return `This action removes a #${id} question`;
+  }
+
+  private handleDBExceptions(error: unknown) {
+    if (error instanceof Error) {
+      this.logger.error('Ha ocurrido un error desconocido', error.stack);
+    } else {
+      this.logger.error(
+        'Ha ocurrido un error desconocido',
+        JSON.stringify(error),
+      );
+    }
+
+    throw new InternalServerErrorException('Ha ocurrido un error desconocido');
   }
 }

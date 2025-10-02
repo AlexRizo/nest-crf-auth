@@ -8,5 +8,6 @@ import { TopicsModule } from 'src/topics/topics.module';
   controllers: [ExamsController],
   providers: [ExamsService],
   imports: [PrismaModule, TopicsModule],
+  exports: [ExamsService],
 })
 export class ExamsModule {}

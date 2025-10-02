@@ -1,5 +1,11 @@
 import { Letter } from '@prisma/client';
-import { IsBoolean, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateOptionDto {
   @IsString()
@@ -11,6 +17,7 @@ export class CreateOptionDto {
   isCorrect: boolean;
 
   @IsString()
+  @IsUUID()
   @IsNotEmpty()
   questionId: string;
 
