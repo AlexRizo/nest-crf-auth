@@ -1,8 +1,8 @@
 import {
   Injectable,
+  NotFoundException,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
@@ -10,12 +10,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { nanoid } from 'nanoid';
 import { isUUID } from 'class-validator';
 import { TopicsService } from 'src/topics/topics.service';
+import { ExamsService } from 'src/exams/exams.service';
 
 @Injectable()
 export class QuestionsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly topicsService: TopicsService,
+    private readonly examsService: ExamsService,
   ) {}
 
   private readonly logger: Logger = new Logger(QuestionsService.name);
@@ -65,6 +67,25 @@ export class QuestionsService {
 
     const questions = await this.prismaService.question.findMany({
       where: { topicId: topic.id, isActive: true },
+      include: {
+        options: true,
+        group: true,
+        topic: true,
+      },
+    });
+
+    if (!questions || questions.length === 0) {
+      throw new NotFoundException('No se encontraron preguntas');
+    }
+
+    return questions;
+  }
+
+  async findAllByExam(examId: string) {
+    await this.examsService.findOne(examId);
+
+    const questions = await this.prismaService.question.findMany({
+      where: { examId, isActive: true },
       include: {
         options: true,
         group: true,

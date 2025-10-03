@@ -36,6 +36,12 @@ export class QuestionsController {
     return this.questionsService.findAllQuestionsByTopicTerm(topicTerm);
   }
 
+  @Auth(Roles.admin, Roles.manager, Roles.applicant)
+  @Get('exam/:examId')
+  findAllQuestionsByExam(@Param('examId', ParseUUIDPipe) examId: string) {
+    return this.questionsService.findAllByExam(examId);
+  }
+
   @Auth(Roles.admin)
   @Patch(':id')
   update(
